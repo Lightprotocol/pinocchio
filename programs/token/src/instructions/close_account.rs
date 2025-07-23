@@ -2,6 +2,7 @@ use pinocchio::{
     account_info::AccountInfo,
     instruction::{AccountMeta, Instruction, Signer},
     program::invoke_signed,
+    pubkey::Pubkey,
     ProgramResult,
 };
 
@@ -11,16 +12,18 @@ use pinocchio::{
 ///   0. `[WRITE]` The account to close.
 ///   1. `[WRITE]` The destination account.
 ///   2. `[SIGNER]` The account's owner.
-pub struct CloseAccount<'a> {
+pub struct CloseAccount<'a, 'b> {
     /// Token Account.
     pub account: &'a AccountInfo,
     /// Destination Account
     pub destination: &'a AccountInfo,
     /// Owner Account
     pub authority: &'a AccountInfo,
+    /// Program ID.
+    pub program_id: &'b Pubkey,
 }
 
-impl CloseAccount<'_> {
+impl CloseAccount<'_, '_> {
     #[inline(always)]
     pub fn invoke(&self) -> ProgramResult {
         self.invoke_signed(&[])
@@ -35,7 +38,7 @@ impl CloseAccount<'_> {
         ];
 
         let instruction = Instruction {
-            program_id: &crate::ID,
+            program_id: self.program_id,
             accounts: &account_metas,
             data: &[9],
         };

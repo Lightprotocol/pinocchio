@@ -4,6 +4,7 @@ use pinocchio::{
     account_info::AccountInfo,
     instruction::{AccountMeta, Instruction, Signer},
     program::invoke_signed,
+    pubkey::Pubkey,
     ProgramResult,
 };
 
@@ -16,7 +17,7 @@ use crate::{write_bytes, UNINIT_BYTE};
 ///   1. `[]` The token mint.
 ///   2. `[WRITE]` The destination account.
 ///   3. `[SIGNER]` The source account's owner/delegate.
-pub struct TransferChecked<'a> {
+pub struct TransferChecked<'a, 'b> {
     /// Sender account.
     pub from: &'a AccountInfo,
     /// Mint Account
@@ -25,13 +26,15 @@ pub struct TransferChecked<'a> {
     pub to: &'a AccountInfo,
     /// Authority account.
     pub authority: &'a AccountInfo,
+    /// Program ID.
+    pub program_id: &'b Pubkey,
     /// Amount of micro-tokens to transfer.
     pub amount: u64,
     /// Decimal for the Token
     pub decimals: u8,
 }
 
-impl TransferChecked<'_> {
+impl TransferChecked<'_, '_> {
     #[inline(always)]
     pub fn invoke(&self) -> ProgramResult {
         self.invoke_signed(&[])
@@ -60,7 +63,7 @@ impl TransferChecked<'_> {
         write_bytes(&mut instruction_data[9..], &[self.decimals]);
 
         let instruction = Instruction {
-            program_id: &crate::ID,
+            program_id: self.program_id,
             accounts: &account_metas,
             data: unsafe { from_raw_parts(instruction_data.as_ptr() as _, 10) },
         };

@@ -2,6 +2,7 @@ use pinocchio::{
     account_info::AccountInfo,
     instruction::{AccountMeta, Instruction, Signer},
     program::invoke_signed,
+    pubkey::Pubkey,
     ProgramResult,
 };
 
@@ -12,7 +13,7 @@ use pinocchio::{
 ///   1. `[]` The mint this account will be associated with.
 ///   2. `[]` The new account's owner/multi-signature.
 ///   3. `[]` Rent sysvar
-pub struct InitializeAccount<'a> {
+pub struct InitializeAccount<'a, 'b> {
     /// New Account.
     pub account: &'a AccountInfo,
     /// Mint Account.
@@ -21,9 +22,11 @@ pub struct InitializeAccount<'a> {
     pub owner: &'a AccountInfo,
     /// Rent Sysvar Account
     pub rent_sysvar: &'a AccountInfo,
+    /// Program ID.
+    pub program_id: &'b Pubkey,
 }
 
-impl InitializeAccount<'_> {
+impl InitializeAccount<'_, '_> {
     #[inline(always)]
     pub fn invoke(&self) -> ProgramResult {
         self.invoke_signed(&[])
@@ -39,7 +42,7 @@ impl InitializeAccount<'_> {
         ];
 
         let instruction = Instruction {
-            program_id: &crate::ID,
+            program_id: self.program_id,
             accounts: &account_metas,
             data: &[1],
         };
